@@ -71,9 +71,7 @@ module.exports = async function handler(req, res) {
     };
 
     // alarmkode kun planner/admin i v1
-    if (["planner", "admin"].includes(normalize(user.role))) {
-      payload.alarmkode = asString(loc.alarmkode);
-    }
+    payload.alarmkode = asString(loc.alarmkode);
 
     await logEvent(user.user_id, "get_location", payload.name);
 
