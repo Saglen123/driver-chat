@@ -23,19 +23,19 @@ async function getSheetRows(sheetName) {
   return res.data.values || [];
 }
 
-  return res.data.values || [];
-}
-
 function rowsToObjects(rows) {
   if (!rows || !rows.length) return [];
   const headers = rows[0].map(h => String(h || "").trim());
-  return rows.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => {
-      obj[h] = row[i] ?? "";
-    });
-    return obj;
-  }).filter(obj => Object.values(obj).some(v => String(v).trim() !== ""));
+  return rows
+    .slice(1)
+    .map(row => {
+      const obj = {};
+      headers.forEach((h, i) => {
+        obj[h] = row[i] ?? "";
+      });
+      return obj;
+    })
+    .filter(obj => Object.values(obj).some(v => String(v).trim() !== ""));
 }
 
 function normalize(s) {
@@ -118,7 +118,7 @@ function createSessionToken(user) {
     name: user.name,
     email: user.email,
     role: user.role,
-    exp: Date.now() + 1000 * 60 * 60 * 12, // 12 timer
+    exp: Date.now() + 1000 * 60 * 60 * 12,
   };
 
   const encoded = base64url(JSON.stringify(payload));
@@ -147,7 +147,7 @@ function setSessionCookie(res, token) {
     "HttpOnly",
     "SameSite=Lax",
     "Secure",
-    "Max-Age=43200"
+    "Max-Age=43200",
   ].join("; ");
 
   res.setHeader("Set-Cookie", cookie);
@@ -160,7 +160,7 @@ function clearSessionCookie(res) {
     "HttpOnly",
     "SameSite=Lax",
     "Secure",
-    "Max-Age=0"
+    "Max-Age=0",
   ].join("; ");
 
   res.setHeader("Set-Cookie", cookie);
@@ -206,7 +206,6 @@ async function logEvent(userId, action, query = "") {
   } catch (err) {
     console.error("LOG ERROR:", err);
   }
-}
 }
 
 module.exports = {
