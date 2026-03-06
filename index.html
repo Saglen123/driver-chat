@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sjåfør-chat</title>
+
+<style>
+body{
+font-family:system-ui;
+background:#0b0d10;
+color:white;
+margin:0;
+}
+
+.chat{
+height:80vh;
+overflow:auto;
+padding:20px;
+}
+
+.msg{
+margin-bottom:14px;
+}
+
+.input{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#111;
+padding:10px;
+display:flex;
+gap:10px;
+}
+
+input{
+flex:1;
+padding:12px;
+border-radius:10px;
+border:none;
+}
+
+button{
+padding:12px 18px;
+border-radius:10px;
+border:none;
+background:#2a6df4;
+color:white;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="chat" id="chat"></div>
+
+<div class="input">
+<input id="msg" placeholder="Skriv melding"/>
+<button onclick="send()">Send</button>
+</div>
+
+<script>
+function send(){
+const msg=document.getElementById("msg").value
+if(!msg)return
+
+const chat=document.getElementById("chat")
+
+chat.innerHTML+=`
+<div class="msg"><b>Du:</b> ${msg}</div>
+<div class="msg"><b>Bot:</b> Tester...</div>
+`
+
+document.getElementById("msg").value=""
+chat.scrollTop=chat.scrollHeight
+}
+</script>
+
+</body>
+</html>
