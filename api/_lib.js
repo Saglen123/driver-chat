@@ -193,16 +193,17 @@ async function logEvent(userId, action, query = "") {
     const sheets = google.sheets({ version: "v4", auth });
 
     await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.SHEET_ID,
+      spreadsheetId: process.env.LOG_SHEET_ID || process.env.SHEET_ID,
       range: "logs!A:D",
       valueInputOption: "USER_ENTERED",
       requestBody: {
         values: [[new Date().toISOString(), userId || "", action || "", query || ""]],
       },
     });
-  } catch {
-    // logs-ark er valgfritt, skal ikke stoppe appen
+  } catch (err) {
+    console.error("LOG ERROR:", err);
   }
+}
 }
 
 module.exports = {
