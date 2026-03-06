@@ -432,10 +432,7 @@
               ${loc.alarmkode ? `<button class="copyBtn" onclick="copyText('${String(loc.alarmkode).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
             </div>
 
-            <div class="tile">
-              <div class="tileLabel">Location ID</div>
-              <div class="tileValue">${loc.id || "Ikke satt"}</div>
-            </div>
+            
           </div>
 
           ${loc.nokkelinfo ? `
