@@ -88,20 +88,39 @@ module.exports = async function handler(req, res) {
     const locId = asNumberKey(loc.location_id);
     const locName = normalize(loc.location_name || loc.lokasjon_id);
 
-    const matchedRoutes = routes
-      .filter(r =>
-        (locId && asNumberKey(r.location_id) === locId) ||
-        (locName && normalize(r.location_name) === locName)
-      )
-      .slice(0, 10)
-      .map(r => ({
-        route_name: asString(r.route_name),
-        delivery_day: dayCodeToName(r.delivery_day),
-        delivery_time: timeToHHMM(r.delivery_time),
-        loading_day: dayCodeToName(r.loading_day),
-        loading_time: timeToHHMM(r.loading_time),
-        notes: asString(r.notes),
-      }));
+    const rawRoutes = routes
+  .filter(r =>
+    (locId && asNumberKey(r.location_id) === locId) ||
+    (locName && normalize(r.location_name) === locName)
+  )
+  .map(r => ({
+    route_name: asString(r.route_name),
+    delivery_day: dayCodeToName(r.delivery_day),
+    delivery_time: timeToHHMM(r.delivery_time),
+    loading_day: dayCodeToName(r.loading_day),
+    loading_time: timeToHHMM(r.loading_time),
+    notes: asString(r.notes),
+  }));
+
+const seen = new Set();
+const matchedRoutes = [];
+
+for (const r of rawRoutes) {
+  const key = [
+    r.route_name,
+    r.delivery_day,
+    r.delivery_time,
+    r.loading_day,
+    r.loading_time,
+    r.notes
+  ].join("|");
+
+  if (seen.has(key)) continue;
+  seen.add(key);
+  matchedRoutes.push(r);
+}
+
+const finalRoutes = matchedRoutes.slice(0, 10);
 
     const payload = {
       name: asString(loc.location_name || loc.lokasjon_id),
@@ -109,7 +128,7 @@ module.exports = async function handler(req, res) {
       kodelas: asString(loc.kodelås || loc.kodelas),
       alarmkode: asString(loc.alarmkode),
       nokkelinfo: asString(loc.nøkkelinfo || loc.nokkelinfo),
-      routes: matchedRoutes,
+      routes: finalRoutes,
     };
 
     await logEvent(user.user_id, "get_location", payload.name);
