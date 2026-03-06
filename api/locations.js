@@ -31,45 +31,50 @@ module.exports = async function handler(req, res) {
 
     let loc = null;
 
-if (id) {
-  loc = locations.find(l => asNumberKey(l.location_id) === asNumberKey(id));
-} else if (nameQuery) {
-  // 1) eksakt match
-  loc = locations.find(l =>
-    normalize(l.location_name || l.lokasjon_id) === nameQuery
-  );
-
-  // 2) contains match
-  if (!loc) {
-    loc = locations.find(l =>
-      normalize(l.location_name || l.lokasjon_id).includes(nameQuery)
-    );
-  }
-
-  // 3) token-match fallback
-  if (!loc) {
-    const tokens = nameQuery.split(/\s+/).filter(t => t.length >= 2);
-
-    let best = null;
-    let bestScore = 0;
-
-    for (const l of locations) {
-      const hay = normalize(l.location_name || l.lokasjon_id);
-      let score = 0;
-
-      for (const t of tokens) {
-        if (hay.includes(t)) score++;
-      }
-
-      if (score > bestScore) {
-        bestScore = score;
-        best = l;
-      }
+    // 1) Finn på ID først
+    if (id) {
+      loc = locations.find(l =>
+        asNumberKey(l.location_id) === asNumberKey(id)
+      );
     }
 
-    if (bestScore > 0) loc = best;
-  }
-}
+    // 2) Hvis ikke ID-match, prøv navn
+    if (!loc && nameQuery) {
+      // eksakt match
+      loc = locations.find(l =>
+        normalize(l.location_name || l.lokasjon_id) === nameQuery
+      );
+
+      // delvis match
+      if (!loc) {
+        loc = locations.find(l =>
+          normalize(l.location_name || l.lokasjon_id).includes(nameQuery)
+        );
+      }
+
+      // token-score fallback
+      if (!loc) {
+        const tokens = nameQuery.split(/\s+/).filter(t => t.length >= 2);
+        let best = null;
+        let bestScore = 0;
+
+        for (const l of locations) {
+          const hay = normalize(l.location_name || l.lokasjon_id);
+          let score = 0;
+
+          for (const t of tokens) {
+            if (hay.includes(t)) score++;
+          }
+
+          if (score > bestScore) {
+            bestScore = score;
+            best = l;
+          }
+        }
+
+        if (bestScore > 0) loc = best;
+      }
+    }
 
     if (!loc) {
       return res.status(404).json({ ok: false, error: "Fant ikke sted" });
@@ -103,12 +108,10 @@ if (id) {
       name: asString(loc.location_name || loc.lokasjon_id),
       portkode: asString(loc.portkode),
       kodelas: asString(loc.kodelås || loc.kodelas),
+      alarmkode: asString(loc.alarmkode),
       nokkelinfo: asString(loc.nøkkelinfo || loc.nokkelinfo),
       routes: matchedRoutes,
     };
-
-    // alarmkode kun planner/admin i v1
-    payload.alarmkode = asString(loc.alarmkode);
 
     await logEvent(user.user_id, "get_location", payload.name);
 
