@@ -1,81 +1,737 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="no">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sjåfør-chat</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0d10" />
+  <title>Sjåfør-chat</title>
 
-<style>
-body{
-font-family:system-ui;
-background:#0b0d10;
-color:white;
-margin:0;
-}
+  <style>
+    * { box-sizing: border-box; }
 
-.chat{
-height:80vh;
-overflow:auto;
-padding:20px;
-}
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0b0d10;
+      color: #e9eef6;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100%;
+    }
 
-.msg{
-margin-bottom:14px;
-}
+    input, button {
+      font-size: 16px;
+    }
 
-.input{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#111;
-padding:10px;
-display:flex;
-gap:10px;
-}
+    .app {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 16px;
+    }
 
-input{
-flex:1;
-padding:12px;
-border-radius:10px;
-border:none;
-}
+    .header {
+      margin-bottom: 14px;
+    }
 
-button{
-padding:12px 18px;
-border-radius:10px;
-border:none;
-background:#2a6df4;
-color:white;
-}
-</style>
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      letter-spacing: -0.02em;
+    }
 
+    .sub {
+      font-size: 14px;
+      opacity: 0.72;
+      margin: 0;
+    }
+
+    .card {
+      background: #11161f;
+      border: 1px solid #202938;
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .searchWrap {
+      position: relative;
+    }
+
+    .searchRow {
+      display: grid;
+      grid-template-columns: 1fr 92px;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid #2a3447;
+      background: #0d1320;
+      color: #e9eef6;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #4b78d1;
+    }
+
+    button {
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid #2a3447;
+      background: #1a2332;
+      color: #f3f6fb;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #202b3d;
+    }
+
+    .suggest {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 999;
+      border: 1px solid #253146;
+      background: #0f1420;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      display: none;
+    }
+
+    .suggest button {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: transparent;
+      padding: 12px 14px;
+      border-radius: 0;
+      font-weight: 500;
+    }
+
+    .suggest button:last-child {
+      border-bottom: 0;
+    }
+
+    .hint {
+      font-size: 13px;
+      opacity: 0.72;
+      margin-top: 10px;
+    }
+
+    .sectionTitle {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.62;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .placeName {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tile {
+      background: #0d1320;
+      border: 1px solid #243044;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .tileLabel {
+      font-size: 12px;
+      opacity: 0.68;
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tileValue {
+      font-size: 17px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .copyBtn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    .notes {
+      background: #0d1320;
+      border: 1px solid #243044;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .routeList {
+      display: grid;
+      gap: 10px;
+    }
+
+    .routeItem {
+      background: #0d1320;
+      border: 1px solid #243044;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .routeName {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .routeMeta {
+      font-size: 14px;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+
+    .empty {
+      opacity: 0.72;
+      font-size: 15px;
+    }
+
+    .topActions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .chip {
+      width: auto;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 999px;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.72;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 12px;
+      }
+
+      .title {
+        font-size: 22px;
+      }
+
+      .searchRow {
+        grid-template-columns: 1fr 84px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .placeName {
+        font-size: 20px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="app">
+    <div class="header">
+      <h1 class="title">Sjåfør-chat</h1>
+      <p class="sub">Søk etter sted eller regnr for å få koder, leveringstider og bilinfo.</p>
+    </div>
 
-<div class="chat" id="chat"></div>
+    <div class="card">
+      <div class="searchWrap">
+        <div class="searchRow">
+          <input
+            id="searchInput"
+            placeholder="Søk sted eller regnr, f.eks. leka eller XR12345"
+            autocomplete="off"
+          />
+          <button id="searchBtn" type="button">Søk</button>
+        </div>
 
-<div class="input">
-<input id="msg" placeholder="Skriv melding"/>
-<button onclick="send()">Send</button>
-</div>
+        <div id="suggestBox" class="suggest"></div>
+      </div>
 
-<script>
-function send(){
-const msg=document.getElementById("msg").value
-if(!msg)return
+      <div class="topActions">
+        <button class="chip" type="button" data-fill="portkode ">Portkode</button>
+        <button class="chip" type="button" data-fill="alarmkode ">Alarmkode</button>
+        <button class="chip" type="button" data-fill="leveringstid ">Leveringstid</button>
+        <button class="chip" type="button" data-fill="dieselkort ">Dieselkort</button>
+      </div>
 
-const chat=document.getElementById("chat")
+      <div id="status" class="status">Laster data…</div>
+    </div>
 
-chat.innerHTML+=`
-<div class="msg"><b>Du:</b> ${msg}</div>
-<div class="msg"><b>Bot:</b> Tester...</div>
-`
+    <div id="result"></div>
+  </div>
 
-document.getElementById("msg").value=""
-chat.scrollTop=chat.scrollHeight
-}
-</script>
+  <script>
+    const state = {
+      locations: [],
+      routes: [],
+      vehicles: [],
+      suggestions: [],
+      suggestIndex: -1
+    };
 
+    const input = document.getElementById('searchInput');
+    const suggestBox = document.getElementById('suggestBox');
+    const result = document.getElementById('result');
+    const statusEl = document.getElementById('status');
+    const searchBtn = document.getElementById('searchBtn');
+
+    let suggestTimer = null;
+
+    function normalize(s) {
+      return String(s || '').trim().toLowerCase();
+    }
+
+    function cleanKey(s) {
+      return normalize(s).replace(/[^a-z0-9æøå]/g, '');
+    }
+
+    function toObjects(rows) {
+      if (!rows || !rows.length) return [];
+      const headers = rows[0];
+      return rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = row[i] ?? '');
+        return obj;
+      });
+    }
+
+    function dayCodeToName(v) {
+      const s = String(v || '').trim();
+      if (!s) return '';
+      if (/[a-zæøå]/i.test(s)) return s;
+      const m = s.match(/\d+/);
+      if (!m) return s;
+
+      const map = {
+        1: 'Mandag',
+        2: 'Tirsdag',
+        3: 'Onsdag',
+        4: 'Torsdag',
+        5: 'Fredag',
+        6: 'Lørdag',
+        7: 'Søndag'
+      };
+
+      return map[Number(m[0])] || s;
+    }
+
+    function timeToHHMM(v) {
+      const s = String(v || '').trim();
+      if (!s) return '';
+      const m = s.match(/^(\d{1,2}):(\d{2})/);
+      if (m) return `${m[1].padStart(2, '0')}:${m[2]}`;
+      return s;
+    }
+
+    function extractRegNr(text) {
+      const m = String(text || '').toUpperCase().match(/\b([A-ZÆØÅ]{2})\s?(\d{5})\b/);
+      return m ? `${m[1]}${m[2]}` : null;
+    }
+
+    async function loadAll() {
+      statusEl.textContent = 'Laster data…';
+
+      try {
+        const [locationsRes, routesRes, vehiclesRes] = await Promise.all([
+          fetch('/api/locations'),
+          fetch('/api/routes'),
+          fetch('/api/vehicles')
+        ]);
+
+        const [locationsJson, routesJson, vehiclesJson] = await Promise.all([
+          locationsRes.json(),
+          routesRes.json(),
+          vehiclesRes.json()
+        ]);
+
+        state.locations = toObjects(locationsJson.data || []);
+        state.routes = toObjects(routesJson.data || []);
+        state.vehicles = toObjects(vehiclesJson.data || []);
+
+        statusEl.textContent = `Klar. ${state.locations.length} steder, ${state.routes.length} rader, ${state.vehicles.length} biler.`;
+      } catch (err) {
+        statusEl.textContent = 'Kunne ikke laste data.';
+        console.error(err);
+      }
+    }
+
+    function rankLocations(query) {
+      const q = normalize(query);
+      const tokens = q.split(/\s+/).filter(t => t.length >= 2);
+      const scored = [];
+
+      for (const loc of state.locations) {
+        const name = normalize(loc.location_name || loc.lokasjon_id || '');
+        const alias = normalize(loc.alias || '');
+        const hay = `${name} ${alias}`.trim();
+        if (!hay) continue;
+
+        let score = 0;
+
+        if (name === q) score += 200;
+        if (alias === q) score += 180;
+        if (name.startsWith(q)) score += 100;
+        if (alias.startsWith(q)) score += 80;
+        if (q.includes(name) && name) score += 60;
+        if (q.includes(alias) && alias) score += 50;
+
+        for (const t of tokens) {
+          if (hay.includes(t)) score += 10;
+        }
+
+        if (score > 0) {
+          scored.push({
+            type: 'location',
+            score,
+            label: alias ? `${loc.location_name || loc.lokasjon_id} (${loc.alias})` : (loc.location_name || loc.lokasjon_id),
+            value: loc.location_name || loc.lokasjon_id,
+            item: loc
+          });
+        }
+      }
+
+      return scored.sort((a, b) => b.score - a.score);
+    }
+
+    function rankVehicles(query) {
+      const q = normalize(query);
+      const reg = extractRegNr(query);
+      const scored = [];
+
+      for (const v of state.vehicles) {
+        const regnr = String(v.regnr || '').toUpperCase().replace(/\s/g, '');
+        const name = normalize(v.vehicle_name || '');
+        const hay = `${regnr.toLowerCase()} ${name}`.trim();
+
+        let score = 0;
+
+        if (reg && regnr === reg) score += 200;
+        if (regnr.toLowerCase().startsWith(q)) score += 100;
+        if (name.startsWith(q)) score += 80;
+        if (hay.includes(q) && q.length >= 2) score += 40;
+
+        if (score > 0) {
+          scored.push({
+            type: 'vehicle',
+            score,
+            label: `${regnr}${v.vehicle_name ? ` (${v.vehicle_name})` : ''}`,
+            value: regnr,
+            item: v
+          });
+        }
+      }
+
+      return scored.sort((a, b) => b.score - a.score);
+    }
+
+    function buildSuggestions(query) {
+      const all = [
+        ...rankLocations(query),
+        ...rankVehicles(query)
+      ];
+
+      return all.slice(0, 8);
+    }
+
+    function renderSuggestions(items) {
+      state.suggestions = items;
+      state.suggestIndex = -1;
+
+      if (!items.length) {
+        suggestBox.style.display = 'none';
+        suggestBox.innerHTML = '';
+        return;
+      }
+
+      suggestBox.innerHTML = '';
+
+      items.forEach((it, index) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = it.type === 'vehicle' ? `🚚 ${it.label}` : `📍 ${it.label}`;
+        btn.addEventListener('click', () => {
+          pickSuggestion(index);
+        });
+        suggestBox.appendChild(btn);
+      });
+
+      suggestBox.style.display = 'block';
+    }
+
+    function pickSuggestion(index) {
+      const chosen = state.suggestions[index];
+      if (!chosen) return;
+
+      input.value = chosen.value;
+      renderSuggestions([]);
+
+      if (chosen.type === 'vehicle') {
+        renderVehicleCard(chosen.item);
+      } else {
+        renderLocationCard(chosen.item);
+      }
+    }
+
+    function hideSuggestions() {
+      renderSuggestions([]);
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        statusEl.textContent = 'Kopiert ✅';
+        setTimeout(() => {
+          statusEl.textContent = `Klar. ${state.locations.length} steder, ${state.routes.length} rader, ${state.vehicles.length} biler.`;
+        }, 1000);
+      }).catch(() => {});
+    }
+
+    function renderVehicleCard(vehicle) {
+      const regnr = String(vehicle.regnr || '').toUpperCase();
+      const name = vehicle.vehicle_name || '';
+      const code = vehicle.fuel_card_code || '';
+      const notes = vehicle.notes || '';
+
+      result.innerHTML = `
+        <div class="card">
+          <div class="sectionTitle">Bil</div>
+          <div class="placeName">${regnr}${name ? ` – ${name}` : ''}</div>
+
+          <div class="grid">
+            <div class="tile">
+              <div class="tileLabel">Regnr</div>
+              <div class="tileValue">${regnr || 'Ikke funnet'}</div>
+            </div>
+
+            <div class="tile">
+              <div class="tileLabel">Dieselkortkode</div>
+              <div class="tileValue">${code || 'Ikke funnet'}</div>
+              ${code ? `<button class="copyBtn" onclick="copyText('${String(code).replace(/'/g, "\\'")}')">Kopier kode</button>` : ''}
+            </div>
+          </div>
+
+          ${notes ? `
+            <div class="notes">
+              <div class="sectionTitle">Notater</div>
+              <div>${notes}</div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function getRoutesForLocation(loc) {
+      const locId = String(loc.location_id || '').trim();
+      const locName = normalize(loc.location_name || loc.lokasjon_id || '');
+
+      return state.routes.filter(r => {
+        const rid = String(r.location_id || '').trim();
+        const rname = normalize(r.location_name || '');
+        return (locId && rid === locId) || (locName && rname === locName);
+      });
+    }
+
+    function renderLocationCard(loc) {
+      const name = loc.location_name || loc.lokasjon_id || 'Ukjent sted';
+      const port = loc.portkode || '';
+      const alarm = loc.alarmkode || '';
+      const kodelas = loc.kodelås || loc.kodelas || '';
+      const nokkel = loc.nøkkelinfo || loc.nokkelinfo || '';
+
+      const routes = getRoutesForLocation(loc).slice(0, 8);
+
+      result.innerHTML = `
+        <div class="card">
+          <div class="sectionTitle">Sted</div>
+          <div class="placeName">${name}</div>
+
+          <div class="grid">
+            <div class="tile">
+              <div class="tileLabel">Portkode</div>
+              <div class="tileValue">${port || 'Ikke funnet'}</div>
+              ${port ? `<button class="copyBtn" onclick="copyText('${String(port).replace(/'/g, "\\'")}')">Kopier</button>` : ''}
+            </div>
+
+            <div class="tile">
+              <div class="tileLabel">Alarmkode</div>
+              <div class="tileValue">${alarm || 'Ikke funnet'}</div>
+              ${alarm ? `<button class="copyBtn" onclick="copyText('${String(alarm).replace(/'/g, "\\'")}')">Kopier</button>` : ''}
+            </div>
+
+            <div class="tile">
+              <div class="tileLabel">Kodelås</div>
+              <div class="tileValue">${kodelas || 'Ikke funnet'}</div>
+              ${kodelas ? `<button class="copyBtn" onclick="copyText('${String(kodelas).replace(/'/g, "\\'")}')">Kopier</button>` : ''}
+            </div>
+
+            <div class="tile">
+              <div class="tileLabel">Location ID</div>
+              <div class="tileValue">${loc.location_id || 'Ikke satt'}</div>
+            </div>
+          </div>
+
+          ${nokkel ? `
+            <div class="notes">
+              <div class="sectionTitle">Nøkkelinfo</div>
+              <div>${nokkel}</div>
+            </div>
+          ` : ''}
+
+          <div class="sectionTitle">Ruter</div>
+          ${
+            routes.length
+              ? `<div class="routeList">
+                  ${routes.map(r => `
+                    <div class="routeItem">
+                      <div class="routeName">${r.route_name || 'Rute'}</div>
+                      <div class="routeMeta">
+                        ${r.delivery_day || r.delivery_time ? `Levering: ${dayCodeToName(r.delivery_day)} ${timeToHHMM(r.delivery_time)}<br>` : ''}
+                        ${r.loading_day || r.loading_time ? `Lasting: ${dayCodeToName(r.loading_day)} ${timeToHHMM(r.loading_time)}<br>` : ''}
+                        ${r.notes ? `Notat: ${r.notes}` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>`
+              : `<div class="empty">Ingen rutedata funnet for dette stedet.</div>`
+          }
+        </div>
+      `;
+    }
+
+    function searchNow() {
+      const q = input.value.trim();
+      if (!q) return;
+
+      hideSuggestions();
+
+      const reg = extractRegNr(q);
+      if (reg) {
+        const vehicle = state.vehicles.find(v =>
+          String(v.regnr || '').toUpperCase().replace(/\s/g, '') === reg
+        );
+
+        if (vehicle) {
+          renderVehicleCard(vehicle);
+          return;
+        }
+      }
+
+      const loc = rankLocations(q)[0];
+      if (loc) {
+        renderLocationCard(loc.item);
+        return;
+      }
+
+      result.innerHTML = `
+        <div class="card">
+          <div class="empty">Fant ingen treff. Prøv stednavn eller regnr.</div>
+        </div>
+      `;
+    }
+
+    function debounceSuggest() {
+      clearTimeout(suggestTimer);
+      suggestTimer = setTimeout(() => {
+        const q = input.value.trim();
+        if (q.length < 2) {
+          hideSuggestions();
+          return;
+        }
+        renderSuggestions(buildSuggestions(q));
+      }, 120);
+    }
+
+    input.addEventListener('input', debounceSuggest);
+
+    input.addEventListener('keydown', (e) => {
+      const buttons = suggestBox.querySelectorAll('button');
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (state.suggestions.length && state.suggestIndex >= 0) {
+          pickSuggestion(state.suggestIndex);
+          return;
+        }
+        if (state.suggestions.length && state.suggestIndex === -1) {
+          pickSuggestion(0);
+          return;
+        }
+        searchNow();
+      }
+
+      if (e.key === 'ArrowDown' && buttons.length) {
+        e.preventDefault();
+        state.suggestIndex = Math.min(state.suggestIndex + 1, buttons.length - 1);
+        updateSuggestFocus(buttons);
+      }
+
+      if (e.key === 'ArrowUp' && buttons.length) {
+        e.preventDefault();
+        state.suggestIndex = Math.max(state.suggestIndex - 1, 0);
+        updateSuggestFocus(buttons);
+      }
+
+      if (e.key === 'Escape') {
+        hideSuggestions();
+      }
+    });
+
+    function updateSuggestFocus(buttons) {
+      buttons.forEach((btn, i) => {
+        btn.style.background = i === state.suggestIndex ? 'rgba(255,255,255,0.06)' : 'transparent';
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!suggestBox.contains(e.target) && e.target !== input) {
+        hideSuggestions();
+      }
+    });
+
+    searchBtn.addEventListener('click', searchNow);
+
+    document.querySelectorAll('.chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        input.value = btn.dataset.fill || '';
+        input.focus();
+      });
+    });
+
+    loadAll();
+
+    window.copyText = copyText;
+  </script>
 </body>
 </html>
