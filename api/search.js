@@ -56,12 +56,23 @@ module.exports = async function handler(req, res) {
 
     items.sort((a, b) => b.score - a.score);
 
-    await logEvent(user.user_id, "search_location", q);
+// fjern duplikater på id
+const seen = new Set();
+const uniqueItems = [];
 
-    return res.status(200).json({
-      ok: true,
-      items: items.slice(0, 8),
-    });
+for (const item of items) {
+  const key = item.id || item.label;
+  if (seen.has(key)) continue;
+  seen.add(key);
+  uniqueItems.push(item);
+}
+
+await logEvent(user.user_id, "search_location", q);
+
+return res.status(200).json({
+  ok: true,
+  items: uniqueItems.slice(0, 8),
+});
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
   }
