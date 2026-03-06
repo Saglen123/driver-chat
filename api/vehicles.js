@@ -44,9 +44,7 @@ module.exports = async function handler(req, res) {
     };
 
     // dieselkort kun planner/admin i v1
-    if (["planner", "admin"].includes(normalize(user.role))) {
-      payload.fuel_card_code = asString(v.fuel_card_code);
-    }
+    payload.fuel_card_code = asString(v.fuel_card_code);
 
     await logEvent(user.user_id, "get_vehicle", payload.regnr);
 
