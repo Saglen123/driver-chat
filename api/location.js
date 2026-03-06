@@ -104,7 +104,6 @@ module.exports = async function handler(req, res) {
       }));
 
     const payload = {
-      id: asString(loc.location_id),
       name: asString(loc.location_name || loc.lokasjon_id),
       portkode: asString(loc.portkode),
       kodelas: asString(loc.kodelås || loc.kodelas),
