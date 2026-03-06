@@ -29,10 +29,47 @@ module.exports = async function handler(req, res) {
     const locations = rowsToObjects(locationRows);
     const routes = rowsToObjects(routeRows);
 
-    const loc = locations.find(l =>
-      (id && asNumberKey(l.location_id) === asNumberKey(id)) ||
-      (nameQuery && normalize(l.location_name || l.lokasjon_id) === nameQuery)
+    let loc = null;
+
+if (id) {
+  loc = locations.find(l => asNumberKey(l.location_id) === asNumberKey(id));
+} else if (nameQuery) {
+  // 1) eksakt match
+  loc = locations.find(l =>
+    normalize(l.location_name || l.lokasjon_id) === nameQuery
+  );
+
+  // 2) contains match
+  if (!loc) {
+    loc = locations.find(l =>
+      normalize(l.location_name || l.lokasjon_id).includes(nameQuery)
     );
+  }
+
+  // 3) token-match fallback
+  if (!loc) {
+    const tokens = nameQuery.split(/\s+/).filter(t => t.length >= 2);
+
+    let best = null;
+    let bestScore = 0;
+
+    for (const l of locations) {
+      const hay = normalize(l.location_name || l.lokasjon_id);
+      let score = 0;
+
+      for (const t of tokens) {
+        if (hay.includes(t)) score++;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = l;
+      }
+    }
+
+    if (bestScore > 0) loc = best;
+  }
+}
 
     if (!loc) {
       return res.status(404).json({ ok: false, error: "Fant ikke sted" });
