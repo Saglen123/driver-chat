@@ -15,6 +15,12 @@ function getAuth() {
 }
 
 async function getSheetRows(sheetName) {
+  const now = Date.now();
+
+  if (sheetCache[sheetName] && now - sheetCacheTime[sheetName] < 60000) {
+    return sheetCache[sheetName];
+  }
+
   const auth = getAuth();
   const sheets = google.sheets({ version: "v4", auth });
 
@@ -23,7 +29,12 @@ async function getSheetRows(sheetName) {
     range: sheetName,
   });
 
-  return res.data.values || [];
+  const rows = res.data.values || [];
+
+  sheetCache[sheetName] = rows;
+  sheetCacheTime[sheetName] = now;
+
+  return rows;
 }
 
 function rowsToObjects(rows) {
