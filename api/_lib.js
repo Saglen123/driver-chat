@@ -1,6 +1,9 @@
 const { google } = require("googleapis");
 const crypto = require("crypto");
 
+let sheetCache = {};
+let sheetCacheTime = {};
+
 function getAuth() {
   return new google.auth.GoogleAuth({
     credentials: {
