@@ -465,64 +465,99 @@
       statusEl.textContent = "";
     }
 
-    async function loadVehicle(regnr) {
-      statusEl.textContent = "Laster bil…";
-      renderSuggestions([]);
+    async function loadVehicle(query) {
+  statusEl.textContent = "Laster bil…";
+  renderSuggestions([]);
 
-      const res = await api(`/api/vehicle?regnr=${encodeURIComponent(regnr)}`);
+  const res = await api(`/api/vehicle?q=${encodeURIComponent(query)}`);
 
-      if (!res.ok) {
-        result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke bil"}</div></div>`;
-        statusEl.textContent = "";
-        return;
-      }
+  if (!res.ok) {
+    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke bil"}</div></div>`;
+    statusEl.textContent = "";
+    return;
+  }
 
-      const v = res.vehicle;
+  // Flere treff: vis liste
+  if (res.multiple && res.items?.length) {
+    result.innerHTML = `
+      <div class="card">
+        <div class="sectionTitle">Biler</div>
+        <div class="placeName">Flere treff</div>
 
-      result.innerHTML = `
-        <div class="card">
-          <div class="sectionTitle">Bil</div>
-          <div class="placeName">${v.regnr}${v.vehicle_name ? ` – ${v.vehicle_name}` : ""}</div>
-
-          <div class="grid">
-            <div class="tile">
-              <div class="tileLabel">Regnr</div>
-              <div class="tileValue">${v.regnr}</div>
+        <div class="routeList">
+          ${res.items.map(v => `
+            <div class="routeItem" style="cursor:pointer;" onclick="loadVehicle('${String(v.regnr).replace(/'/g, "\\'")}')">
+              <div class="routeName">${v.regnr}${v.vehicle_name ? ` – ${v.vehicle_name}` : ""}</div>
+              <div class="routeMeta">
+                ${v.notes ? `Notat: ${v.notes}` : "Trykk for detaljer"}
+              </div>
             </div>
-
-            <div class="tile">
-              <div class="tileLabel">Dieselkortkode</div>
-              <div class="tileValue">${v.fuel_card_code || "Ikke tilgjengelig"}</div>
-              ${v.fuel_card_code ? `<button class="copyBtn" onclick="copyText('${String(v.fuel_card_code).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
-            </div>
-          </div>
-
-          ${v.notes ? `
-            <div class="notes">
-              <div class="sectionTitle">Notater</div>
-              <div>${v.notes}</div>
-            </div>
-          ` : ""}
+          `).join("")}
         </div>
-      `;
+      </div>
+    `;
 
-      statusEl.textContent = "";
-    }
+    statusEl.textContent = "";
+    return;
+  }
+
+  // Ett treff: vis full bil
+  const v = res.vehicle;
+
+  result.innerHTML = `
+    <div class="card">
+      <div class="sectionTitle">Bil</div>
+      <div class="placeName">${v.regnr}${v.vehicle_name ? ` – ${v.vehicle_name}` : ""}</div>
+
+      <div class="grid">
+        <div class="tile">
+          <div class="tileLabel">Regnr</div>
+          <div class="tileValue">${v.regnr}</div>
+        </div>
+
+        <div class="tile">
+          <div class="tileLabel">Dieselkortkode</div>
+          <div class="tileValue">${v.fuel_card_code || "Ikke tilgjengelig"}</div>
+          ${v.fuel_card_code ? `<button class="copyBtn" onclick="copyText('${String(v.fuel_card_code).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
+        </div>
+      </div>
+
+      ${v.notes ? `
+        <div class="notes">
+          <div class="sectionTitle">Notater</div>
+          <div>${v.notes}</div>
+        </div>
+      ` : ""}
+    </div>
+  `;
+
+  statusEl.textContent = "";
+}
 
     async function searchNow() {
-      const q = searchInput.value.trim();
-      if (!q) return;
+  const q = searchInput.value.trim();
+  if (!q) return;
 
-      renderSuggestions([]);
+  renderSuggestions([]);
 
-      const reg = extractRegNr(q);
-      if (reg) {
-        await loadVehicle(reg);
-        return;
-      }
+  const reg = extractRegNr(q);
 
-      await loadLocation("", q);
-    }
+  // Hvis det ser ut som regnr -> bil
+  if (reg) {
+    await loadVehicle(reg);
+    return;
+  }
+
+  // Enkle bilord -> prøv bil først
+  const vehicleWords = ["volvo", "scania", "man", "mercedes", "daf"];
+  if (vehicleWords.some(word => normalize(q).includes(word))) {
+    await loadVehicle(q);
+    return;
+  }
+
+  // Ellers sted
+  await loadLocation("", q);
+}
 
     function debounceSuggest() {
       clearTimeout(suggestTimer);
