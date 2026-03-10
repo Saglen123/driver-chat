@@ -478,6 +478,73 @@
     return;
   }
 
+    async function loadTrailer(query) {
+  statusEl.textContent = "Laster henger…";
+  renderSuggestions([]);
+
+  const res = await api(`/api/trailer?q=${encodeURIComponent(query)}`);
+
+  if (!res.ok) {
+    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke henger"}</div></div>`;
+    statusEl.textContent = "";
+    return;
+  }
+
+  if (res.multiple && res.items?.length) {
+    result.innerHTML = `
+      <div class="card">
+        <div class="sectionTitle">Hengere</div>
+        <div class="placeName">Flere treff</div>
+
+        <div class="routeList">
+          ${res.items.map(t => `
+            <div class="routeItem" style="cursor:pointer;" onclick="loadTrailer('${String(t.regnr).replace(/'/g, "\\'")}')">
+              <div class="routeName">${t.regnr}${t.trailer_name ? ` – ${t.trailer_name}` : ""}</div>
+              <div class="routeMeta">
+                ${t.notes ? `Notat: ${t.notes}` : "Trykk for detaljer"}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+
+    statusEl.textContent = "";
+    return;
+  }
+
+  const t = res.trailer;
+
+  result.innerHTML = `
+    <div class="card">
+      <div class="sectionTitle">Henger</div>
+      <div class="placeName">${t.regnr}${t.trailer_name ? ` – ${t.trailer_name}` : ""}</div>
+
+      <div class="grid">
+        <div class="tile">
+          <div class="tileLabel">Regnr</div>
+          <div class="tileValue">${t.regnr}</div>
+        </div>
+
+        <div class="tile">
+          <div class="tileLabel">Vognkort</div>
+          <div class="tileValue">${t.vognkort_url ? "Tilgjengelig" : "Ikke tilgjengelig"}</div>
+          ${t.vognkort_url ? `<button class="copyBtn" onclick="window.open('${String(t.vognkort_url).replace(/'/g, "\\'")}', '_blank')">Vis vognkort</button>` : ""}
+        </div>
+      </div>
+
+      ${t.notes ? `
+        <div class="notes">
+          <div class="sectionTitle">Notater</div>
+          <div>${t.notes}</div>
+        </div>
+      ` : ""}
+    </div>
+  `;
+
+  statusEl.textContent = "";
+}
+
   // Flere treff: vis liste
   if (res.multiple && res.items?.length) {
     result.innerHTML = `
@@ -553,6 +620,12 @@
   const vehicleWords = ["volvo", "scania", "man", "mercedes", "daf"];
   if (vehicleWords.some(word => normalize(q).includes(word))) {
     await loadVehicle(q);
+    return;
+  }
+
+  const trailerWords = ["henger", "tralle", "kjøl", "skap", "gardin"];
+  if (trailerWords.some(word => normalized.includes(word))) {
+    await loadTrailer(q);
     return;
   }
 
