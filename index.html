@@ -452,6 +452,7 @@
                       <div class="routeMeta">
                         ${r.delivery_day || r.delivery_time ? `Levering: ${r.delivery_day || ""} ${r.delivery_time || ""}<br>` : ""}
                         ${r.loading_day || r.loading_time ? `Lasting: ${r.loading_day || ""} ${r.loading_time || ""}<br>` : ""}
+                        ${r.goods_info ? `Varer: ${r.goods_info}<br>` : ""}
                         ${r.notes ? `Notat: ${r.notes}` : ""}
                       </div>
                     </div>
