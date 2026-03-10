@@ -100,6 +100,7 @@ module.exports = async function handler(req, res) {
     loading_day: dayCodeToName(r.loading_day),
     loading_time: timeToHHMM(r.loading_time),
     notes: asString(r.notes),
+    goods_info: asString(r.goods_info),
   }));
 
 const seen = new Set();
