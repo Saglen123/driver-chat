@@ -31,7 +31,18 @@ module.exports = async function handler(req, res) {
       items.push({ name });
     }
 
-    items.sort((a, b) => a.name.localeCompare(b.name, "no"));
+    items.sort((a, b) => {
+  const aName = a.name || "";
+  const bName = b.name || "";
+
+  const aStartsWithLetter = /^[A-Za-zÆØÅæøå]/.test(aName);
+  const bStartsWithLetter = /^[A-Za-zÆØÅæøå]/.test(bName);
+
+  if (aStartsWithLetter && !bStartsWithLetter) return -1;
+  if (!aStartsWithLetter && bStartsWithLetter) return 1;
+
+  return aName.localeCompare(bName, "no", { numeric: true, sensitivity: "base" });
+});
 
     await logEvent(user.user_id, "list_routes", "");
 
