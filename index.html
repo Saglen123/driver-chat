@@ -460,34 +460,21 @@
           ${
             routes.length
               ? `<div class="routeList">
-               ${routes
-                  .filter(r => r.delivery_day || r.delivery_time || r.loading_day || r.loading_time || r.goods_info || r.notes)
-                  .map(r => `
-                    <div class="routeItem">
-                      <div class="routeName">${r.route_name || "Rute"}</div>
-                      <div class="routeMeta">
-
-                        ${stop.delivery_time ? `
-                        <div style="font-weight:600;">
-                        Levering: ${stop.delivery_time}
-                      </div>
-                      ` : ""}
-
-                      ${stop.goods_info ? `
-                      <div>
-                      📦 Varer: ${stop.goods_info}
-                      </div>
-                      ` : ""}
-
-                      ${stop.notes ? `
-                    <div style="opacity:0.8;">
-                      ${stop.notes}
-                    </div>
-                    ` : ""}
-
-                    </div>
-                    </div>
-                  `).join("")}
+               ${routes.map(r => `
+                <div class="routeItem">
+                  <div class="routeName"
+                       style="cursor:pointer; text-decoration:underline;"
+                       onclick="loadRoute('${String(r.route_name || "").replace(/'/g, "\\'")}')">
+                    ${r.route_name || "Rute"}
+                  </div>
+                  <div class="routeMeta">
+                    ${r.delivery_day || r.delivery_time ? `Levering: ${r.delivery_day || ""} ${r.delivery_time || ""}<br>` : ""}
+                    ${r.loading_day || r.loading_time ? `Lasting: ${r.loading_day || ""} ${r.loading_time || ""}<br>` : ""}
+                    ${r.goods_info ? `Varer: ${r.goods_info}<br>` : ""}
+                    ${r.notes ? `Notat: ${r.notes}` : ""}
+                  </div>
+                </div>
+            `).join("")}
                 </div>`
               : `<div class="empty">Ingen rutedata funnet.</div>`
           }
