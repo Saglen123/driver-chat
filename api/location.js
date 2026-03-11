@@ -103,17 +103,7 @@ module.exports = async function handler(req, res) {
     loading_time: timeToHHMM(r.loading_time),
     notes: asString(r.notes),
     goods_info: asString(r.goods_info),
-  }))
-  // fjern helt tomme ruter
-  .filter(r =>
-    r.route_name ||
-    r.delivery_day ||
-    r.delivery_time ||
-    r.loading_day ||
-    r.loading_time ||
-    r.notes ||
-    r.goods_info
-  );
+  }));
 
 const seen = new Set();
 const matchedRoutes = [];
@@ -134,8 +124,21 @@ for (const r of rawRoutes) {
   matchedRoutes.push(r);
 }
 
-// sorter så nyttige ruter kommer først
-matchedRoutes.sort((a, b) => {
+// først: rader som faktisk har info
+const routesWithInfo = matchedRoutes.filter(r =>
+  r.delivery_day ||
+  r.delivery_time ||
+  r.loading_day ||
+  r.loading_time ||
+  r.goods_info ||
+  r.notes
+);
+
+// hvis vi fant rader med info, bruk bare dem
+const routesToUse = routesWithInfo.length ? routesWithInfo : matchedRoutes;
+
+// sorter pent
+routesToUse.sort((a, b) => {
   if (a.delivery_day_num !== b.delivery_day_num) {
     return a.delivery_day_num - b.delivery_day_num;
   }
@@ -148,7 +151,7 @@ matchedRoutes.sort((a, b) => {
   return a.loading_time.localeCompare(b.loading_time);
 });
 
-const finalRoutes = matchedRoutes.slice(0, 10);
+const finalRoutes = routesToUse.slice(0, 20);
 
     const payload = {
       name: asString(loc.location_name || loc.lokasjon_id),
