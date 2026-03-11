@@ -460,7 +460,9 @@
           ${
             routes.length
               ? `<div class="routeList">
-                  ${routes.map(r => `
+               ${routes
+                  .filter(r => r.delivery_day || r.delivery_time || r.loading_day || r.loading_time || r.goods_info || r.notes)
+                  .map(r => `
                     <div class="routeItem">
                       <div class="routeName">${r.route_name || "Rute"}</div>
                       <div class="routeMeta">
