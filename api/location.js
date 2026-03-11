@@ -95,13 +95,25 @@ module.exports = async function handler(req, res) {
   )
   .map(r => ({
     route_name: asString(r.route_name),
+    delivery_day_num: Number(r.delivery_day || 0),
     delivery_day: dayCodeToName(r.delivery_day),
     delivery_time: timeToHHMM(r.delivery_time),
+    loading_day_num: Number(r.loading_day || 0),
     loading_day: dayCodeToName(r.loading_day),
     loading_time: timeToHHMM(r.loading_time),
     notes: asString(r.notes),
     goods_info: asString(r.goods_info),
-  }));
+  }))
+  // fjern helt tomme ruter
+  .filter(r =>
+    r.route_name ||
+    r.delivery_day ||
+    r.delivery_time ||
+    r.loading_day ||
+    r.loading_time ||
+    r.notes ||
+    r.goods_info
+  );
 
 const seen = new Set();
 const matchedRoutes = [];
@@ -109,17 +121,32 @@ const matchedRoutes = [];
 for (const r of rawRoutes) {
   const key = [
     r.route_name,
-    r.delivery_day,
+    r.delivery_day_num,
     r.delivery_time,
-    r.loading_day,
+    r.loading_day_num,
     r.loading_time,
-    r.notes
+    r.notes,
+    r.goods_info
   ].join("|");
 
   if (seen.has(key)) continue;
   seen.add(key);
   matchedRoutes.push(r);
 }
+
+// sorter så nyttige ruter kommer først
+matchedRoutes.sort((a, b) => {
+  if (a.delivery_day_num !== b.delivery_day_num) {
+    return a.delivery_day_num - b.delivery_day_num;
+  }
+  if (a.delivery_time !== b.delivery_time) {
+    return a.delivery_time.localeCompare(b.delivery_time);
+  }
+  if (a.loading_day_num !== b.loading_day_num) {
+    return a.loading_day_num - b.loading_day_num;
+  }
+  return a.loading_time.localeCompare(b.loading_time);
+});
 
 const finalRoutes = matchedRoutes.slice(0, 10);
 
