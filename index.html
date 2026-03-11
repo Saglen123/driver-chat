@@ -280,6 +280,7 @@
     const suggestBox = document.getElementById("suggestBox");
     const result = document.getElementById("result");
     const routesBtn = document.getElementById("routesBtn");
+    let currentRouteName = null;
 
     let suggestions = [];
     let suggestIndex = -1;
@@ -415,31 +416,38 @@
       const routes = loc.routes || [];
 
       result.innerHTML = `
-        <div class="card">
-          <div class="sectionTitle">Sted</div>
-          <div class="placeName">${loc.name}</div>
+  <div class="card">
 
-          <div class="grid">
-            <div class="tile">
-              <div class="tileLabel">Portkode</div>
-              <div class="tileValue">${loc.portkode || "Ikke tilgjengelig"}</div>
-              ${loc.portkode ? `<button class="copyBtn" onclick="copyText('${String(loc.portkode).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
-            </div>
+    ${currentRouteName ? `
+      <div style="margin-bottom:12px;">
+        <button onclick="loadRoute('${String(currentRouteName).replace(/'/g, "\\'")}')">
+          ← Tilbake til rute
+        </button>
+      </div>
+    ` : ""}
 
-            <div class="tile">
-              <div class="tileLabel">Kodelås</div>
-              <div class="tileValue">${loc.kodelas || "Ikke tilgjengelig"}</div>
-              ${loc.kodelas ? `<button class="copyBtn" onclick="copyText('${String(loc.kodelas).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
-            </div>
+    <div class="sectionTitle">Sted</div>
+    <div class="placeName">${loc.name}</div>
 
-            <div class="tile">
-              <div class="tileLabel">Alarmkode</div>
-              <div class="tileValue">${loc.alarmkode || "Ikke tilgjengelig"}</div>
-              ${loc.alarmkode ? `<button class="copyBtn" onclick="copyText('${String(loc.alarmkode).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
-            </div>
+    <div class="grid">
+      <div class="tile">
+        <div class="tileLabel">Portkode</div>
+        <div class="tileValue">${loc.portkode || "Ikke tilgjengelig"}</div>
+        ${loc.portkode ? `<button class="copyBtn" onclick="copyText('${String(loc.portkode).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
+      </div>
 
-            
-          </div>
+      <div class="tile">
+        <div class="tileLabel">Kodelås</div>
+        <div class="tileValue">${loc.kodelas || "Ikke tilgjengelig"}</div>
+        ${loc.kodelas ? `<button class="copyBtn" onclick="copyText('${String(loc.kodelas).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
+      </div>
+
+      <div class="tile">
+        <div class="tileLabel">Alarmkode</div>
+        <div class="tileValue">${loc.alarmkode || "Ikke tilgjengelig"}</div>
+        ${loc.alarmkode ? `<button class="copyBtn" onclick="copyText('${String(loc.alarmkode).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
+      </div>
+    </div>
 
           ${loc.nokkelinfo ? `
             <div class="notes">
@@ -773,6 +781,7 @@ async function searchNow() {
 }
 
     async function loadRoute(routeName) {
+      currentRouteName = routeName;
   statusEl.textContent = "Laster rute…";
   renderSuggestions([]);
 
