@@ -39,7 +39,7 @@ module.exports = async function handler(req, res) {
         loading_day: dayCodeToName(r.loading_day),
         loading_time: timeToHHMM(r.loading_time),
         notes: asString(r.notes),
-        stop_order: Number(r.stop_order || 9999),
+        stop_order: Number(r.stop_order || 0),
         goods_info: asString(r.goods_info),
       }));
 
