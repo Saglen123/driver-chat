@@ -259,6 +259,9 @@
       </div>
 
       <div class="status" id="status"></div>
+      <div style="margin-top:10px;">
+      <button id="routesBtn" type="button">Distribusjonsruter</button>
+      </div>
     </div>
 
     <div id="result"></div>
@@ -276,6 +279,7 @@
     const searchBtn = document.getElementById("searchBtn");
     const suggestBox = document.getElementById("suggestBox");
     const result = document.getElementById("result");
+    const routesBtn = document.getElementById("routesBtn");
 
     let suggestions = [];
     let suggestIndex = -1;
@@ -388,6 +392,8 @@
 
       renderSuggestions(res.items || []);
     }
+
+    
 
     async function loadLocation(id, name = "") {
       statusEl.textContent = "Laster sted…";
@@ -704,10 +710,107 @@ async function searchNow() {
     loginBtn.addEventListener("click", login);
     logoutBtn.addEventListener("click", logout);
     searchBtn.addEventListener("click", searchNow);
+    routesBtn.addEventListener("click", loadRoutesList);
 
     window.copyText = copyText;
+    window.loadRoute = loadRoute;
+    window.loadRoutesList = loadRoutesList;
 
     checkSession();
+
+    async function loadRoutesList() {
+  statusEl.textContent = "Laster ruter…";
+  renderSuggestions([]);
+
+  const res = await api("/api/routes");
+
+  if (!res.ok) {
+    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Kunne ikke laste ruter"}</div></div>`;
+    statusEl.textContent = "";
+    return;
+  }
+
+  const items = res.items || [];
+
+  if (!items.length) {
+    result.innerHTML = `<div class="card"><div class="empty">Fant ingen ruter.</div></div>`;
+    statusEl.textContent = "";
+    return;
+  }
+
+  result.innerHTML = `
+    <div class="card">
+      <div class="sectionTitle">Distribusjonsruter</div>
+      <div class="placeName">Velg en rute</div>
+
+      <div class="routeList">
+        ${items.map(r => `
+          <div class="routeItem" style="cursor:pointer;" onclick="loadRoute('${String(r.name).replace(/'/g, "\\'")}')">
+            <div class="routeName">${r.name}</div>
+            <div class="routeMeta">Trykk for å vise hele ruten</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+
+  statusEl.textContent = "";
+}
+
+    async function loadRoute(routeName) {
+  statusEl.textContent = "Laster rute…";
+  renderSuggestions([]);
+
+  const res = await api(`/api/route?name=${encodeURIComponent(routeName)}`);
+
+  if (!res.ok) {
+    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke rute"}</div></div>`;
+    statusEl.textContent = "";
+    return;
+  }
+
+  const days = res.days || [];
+
+  result.innerHTML = `
+    <div class="card">
+      <div class="sectionTitle">Distribusjonsrute</div>
+      <div class="placeName">${res.route_name}</div>
+
+      <div style="margin-bottom:12px;">
+        <button type="button" onclick="loadRoutesList()">← Tilbake til ruteliste</button>
+      </div>
+
+      ${
+        days.length
+          ? days.map(day => `
+              <div class="notes" style="margin-bottom:14px;">
+                <div class="sectionTitle">${day.day_name || "Dag"}</div>
+
+                <div class="routeList">
+                  ${day.stops.map(stop => `
+                    <div class="routeItem">
+                      <div class="routeName">
+                        ${stop.stop_order ? `${stop.stop_order}. ` : ""}${stop.location_name || "Stopp"}
+                      </div>
+
+                      <div class="routeMeta">
+                        ${stop.delivery_time ? `Levering: ${stop.delivery_time}<br>` : ""}
+                        ${stop.loading_day || stop.loading_time ? `Lasting: ${stop.loading_day || ""} ${stop.loading_time || ""}<br>` : ""}
+                        ${stop.goods_info ? `Varer: ${stop.goods_info}<br>` : ""}
+                        ${stop.notes ? `Notat: ${stop.notes}` : ""}
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            `).join("")
+          : `<div class="empty">Ingen stopp funnet på denne ruten.</div>`
+      }
+    </div>
+  `;
+
+  statusEl.textContent = "";
+}
   </script>
 </body>
 </html>
