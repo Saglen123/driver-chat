@@ -790,8 +790,8 @@ async function searchNow() {
                   ${day.stops.map(stop => `
                     <div class="routeItem">
                       <div class="routeName">
-                        ${stop.stop_order ? `${stop.stop_order}. ` : ""}${stop.location_name || "Stopp"}
-                      </div>
+                        ${stop.stop_order && stop.stop_order !== 9999 ? `${stop.stop_order}. ` : ""}${stop.location_name || "Stopp"}
+                    </div>
 
                       <div class="routeMeta">
                         ${stop.delivery_time ? `Levering: ${stop.delivery_time}<br>` : ""}
