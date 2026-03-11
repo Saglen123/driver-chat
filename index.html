@@ -260,7 +260,7 @@
 
       <div class="status" id="status"></div>
       <div style="margin-top:10px;">
-      <button id="routesBtn" type="button">Distribusjonsruter 📅</button>
+      <button id="routesBtn" type="button">Distribusjonsruter</button>
       </div>
     </div>
 
@@ -426,24 +426,24 @@
       </div>
     ` : ""}
 
-    <div class="sectionTitle">Sted 📍</div>
+    <div class="sectionTitle">Sted </div>
     <div class="placeName">${loc.name}</div>
 
     <div class="grid">
       <div class="tile">
-        <div class="tileLabel">Portkode 🔐</div>
+        <div class="tileLabel">Portkode </div>
         <div class="tileValue">${loc.portkode || "Ikke tilgjengelig"}</div>
         ${loc.portkode ? `<button class="copyBtn" onclick="copyText('${String(loc.portkode).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
       </div>
 
       <div class="tile">
-        <div class="tileLabel">Kodelås 🔐</div>
+        <div class="tileLabel">Kodelås </div>
         <div class="tileValue">${loc.kodelas || "Ikke tilgjengelig"}</div>
         ${loc.kodelas ? `<button class="copyBtn" onclick="copyText('${String(loc.kodelas).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
       </div>
 
       <div class="tile">
-        <div class="tileLabel">Alarmkode 🔐</div>
+        <div class="tileLabel">Alarmkode </div>
         <div class="tileValue">${loc.alarmkode || "Ikke tilgjengelig"}</div>
         ${loc.alarmkode ? `<button class="copyBtn" onclick="copyText('${String(loc.alarmkode).replace(/'/g, "\\'")}')">Kopier</button>` : ""}
       </div>
@@ -451,12 +451,12 @@
 
           ${loc.nokkelinfo ? `
             <div class="notes">
-              <div class="sectionTitle">Nøkkelinfo 🔑</div>
+              <div class="sectionTitle">Nøkkelinfo </div>
               <div>${loc.nokkelinfo}</div>
             </div>
           ` : ""}
 
-          <div class="sectionTitle">Ruter 📅</div>
+          <div class="sectionTitle">Ruter </div>
           ${
             routes.length
               ? `<div class="routeList">
@@ -790,7 +790,7 @@ async function searchNow() {
       <div class="placeName">${res.route_name}</div>
 
       <div style="margin-bottom:12px;">
-        <button type="button" onclick="loadRoutesList()">← Tilbake til ruteliste 📅</button>
+        <button type="button" onclick="loadRoutesList()">← Tilbake til ruteliste </button>
       </div>
 
       ${
