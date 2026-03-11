@@ -456,11 +456,26 @@
                     <div class="routeItem">
                       <div class="routeName">${r.route_name || "Rute"}</div>
                       <div class="routeMeta">
-                        ${r.delivery_day || r.delivery_time ? `Levering: ${r.delivery_day || ""} ${r.delivery_time || ""}<br>` : ""}
-                        ${r.loading_day || r.loading_time ? `Lasting: ${r.loading_day || ""} ${r.loading_time || ""}<br>` : ""}
-                        ${r.goods_info ? `Varer: ${r.goods_info}<br>` : ""}
-                        ${r.notes ? `Notat: ${r.notes}` : ""}
+
+                        ${stop.delivery_time ? `
+                        <div style="font-weight:600;">
+                        Levering: ${stop.delivery_time}
                       </div>
+                      ` : ""}
+
+                      ${stop.goods_info ? `
+                      <div>
+                      📦 Varer: ${stop.goods_info}
+                      </div>
+                      ` : ""}
+
+                      ${stop.notes ? `
+                    <div style="opacity:0.8;">
+                      ${stop.notes}
+                    </div>
+                    ` : ""}
+
+                    </div>
                     </div>
                   `).join("")}
                 </div>`
