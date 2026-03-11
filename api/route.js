@@ -25,23 +25,44 @@ module.exports = async function handler(req, res) {
     const rows = await getSheetRows("routes");
     const routes = rowsToObjects(rows);
 
-    const matched = routes
-      .filter(r => normalize(r.route_name) === normalize(routeName))
-      .map(r => ({
-        route_id: asString(r.route_id),
-        location_id: asNumberKey(r.location_id),
-        location_name: asString(r.location_name),
-        route_name: asString(r.route_name),
-        delivery_day_num: Number(r.delivery_day || 0),
-        delivery_day: dayCodeToName(r.delivery_day),
-        delivery_time: timeToHHMM(r.delivery_time),
-        loading_day_num: Number(r.loading_day || 0),
-        loading_day: dayCodeToName(r.loading_day),
-        loading_time: timeToHHMM(r.loading_time),
-        notes: asString(r.notes),
-        stop_order: Number(r.stop_order || 0),
-        goods_info: asString(r.goods_info),
-      }));
+    const rawMatched = routes
+  .filter(r => normalize(r.route_name) === normalize(routeName))
+  .map(r => ({
+    route_id: asString(r.route_id),
+    location_id: asNumberKey(r.location_id),
+    location_name: asString(r.location_name),
+    route_name: asString(r.route_name),
+    delivery_day_num: Number(r.delivery_day || 0),
+    delivery_day: dayCodeToName(r.delivery_day),
+    delivery_time: timeToHHMM(r.delivery_time),
+    loading_day_num: Number(r.loading_day || 0),
+    loading_day: dayCodeToName(r.loading_day),
+    loading_time: timeToHHMM(r.loading_time),
+    notes: asString(r.notes),
+    stop_order: Number(r.stop_order || 9999),
+    goods_info: asString(r.goods_info),
+  }));
+
+const seen = new Set();
+const matched = [];
+
+for (const r of rawMatched) {
+  const key = [
+    r.route_name,
+    r.delivery_day_num,
+    r.location_id,
+    r.location_name,
+    r.delivery_time,
+    r.loading_day_num,
+    r.loading_time,
+    r.notes,
+    r.goods_info
+  ].join("|");
+
+  if (seen.has(key)) continue;
+  seen.add(key);
+  matched.push(r);
+}
 
     if (!matched.length) {
       return res.status(404).json({ ok: false, error: "Fant ikke rute" });
