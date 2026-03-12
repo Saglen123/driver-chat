@@ -313,8 +313,17 @@
 
 function renderBackButton() {
   return `
-    <div style="margin-bottom:12px;">
-      <button onclick="history.back()">← Tilbake</button>
+    <div style="margin-bottom:10px;">
+      <button onclick="history.back()" style="
+        background:transparent;
+        border:none;
+        color:#9fb4d8;
+        font-weight:600;
+        padding:6px 0;
+        cursor:pointer;
+      ">
+        ← Tilbake
+      </button>
     </div>
   `;
 }
@@ -443,7 +452,7 @@ function renderBackButton() {
       const res = await api(url);
 
       if (!res.ok) {
-        result.innerHTML = `<div class="card"> ${renderBackButton()}<div class="empty">${res.error || "Fant ikke sted"}</div></div>`;
+        result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke sted"}</div></div>`;
         statusEl.textContent = "";
         return;
       }
@@ -529,7 +538,7 @@ function renderBackButton() {
   const res = await api(`/api/vehicle?q=${encodeURIComponent(query)}`);
 
   if (!res.ok) {
-    result.innerHTML = `<div class="card"> ${renderBackButton()}<div class="empty">${res.error || "Fant ikke bil"}</div></div>`;
+    result.innerHTML = `<div class="card"> <div class="empty">${res.error || "Fant ikke bil"}</div></div>`;
     statusEl.textContent = "";
     return;
   }
@@ -802,7 +811,7 @@ async function searchNow() {
   const items = res.items || [];
 
   if (!items.length) {
-    result.innerHTML = `<div class="card"> ${renderBackButton()}<div class="empty">Fant ingen ruter.</div></div>`;
+    result.innerHTML = `<div class="card"><div class="empty">Fant ingen ruter.</div></div>`;
     statusEl.textContent = "";
     return;
   }
@@ -838,7 +847,7 @@ async function searchNow() {
   const res = await api(`/api/route?name=${encodeURIComponent(routeName)}`);
 
   if (!res.ok) {
-    result.innerHTML = `<div class="card">${renderBackButton()}<div class="empty">${res.error || "Fant ikke rute"}</div></div>`;
+    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke rute"}</div></div>`;
     statusEl.textContent = "";
     return;
   }
