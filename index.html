@@ -281,6 +281,7 @@
     const result = document.getElementById("result");
     const routesBtn = document.getElementById("routesBtn");
     let currentRouteName = null;
+    let lastView = null;
 
     let suggestions = [];
     let suggestIndex = -1;
@@ -347,6 +348,26 @@
       suggestBox.style.display = "none";
       await checkSession();
     }
+
+    function goBack() {
+  if (!lastView) return;
+
+  if (lastView.type === "location") {
+    loadLocation(lastView.id, lastView.name);
+  }
+
+  if (lastView.type === "vehicle") {
+    loadVehicle(lastView.query);
+  }
+
+  if (lastView.type === "trailer") {
+    loadTrailer(lastView.query);
+  }
+
+  if (lastView.type === "route") {
+    loadRoute(lastView.name);
+  }
+}
 
     function renderSuggestions(items) {
       suggestions = items;
@@ -499,6 +520,9 @@
   if (res.multiple && res.items?.length) {
     result.innerHTML = `
       <div class="card">
+        <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
+        ← Tilbake
+        </button>
         <div class="sectionTitle">Biler 🚛</div>
         <div class="placeName">Flere treff</div>
 
@@ -523,6 +547,9 @@
 
   result.innerHTML = `
     <div class="card">
+    <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
+      ← Tilbake
+    </button>
       <div class="sectionTitle">Bil 🚛</div>
       <div class="placeName">${v.regnr}${v.vehicle_name ? ` – ${v.vehicle_name}` : ""}</div>
 
@@ -558,7 +585,14 @@ async function loadTrailer(query) {
   const res = await api(`/api/trailer?q=${encodeURIComponent(query)}`);
 
   if (!res.ok) {
-    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke henger"}</div></div>`;
+    result.innerHTML = `
+    <div class="card">
+      <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
+      ← Tilbake
+      </button>
+      <div class="empty">${res.error || "Fant ikke henger"}
+      </div>
+    </div>`;
     statusEl.textContent = "";
     return;
   }
@@ -566,6 +600,9 @@ async function loadTrailer(query) {
   if (res.multiple && res.items?.length) {
     result.innerHTML = `
       <div class="card">
+        <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
+          ← Tilbake
+        </button>
         <div class="sectionTitle">Hengere 🛻</div>
         <div class="placeName">Flere treff</div>
 
@@ -590,6 +627,9 @@ async function loadTrailer(query) {
 
   result.innerHTML = `
     <div class="card">
+      <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
+        ← Tilbake
+      </button>
       <div class="sectionTitle">Henger 🛻</div>
       <div class="placeName">${t.regnr}${t.trailer_name ? ` – ${t.trailer_name}` : ""}</div>
 
