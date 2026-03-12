@@ -21,27 +21,34 @@ module.exports = async function handler(req, res) {
     const items = [];
 
     for (const r of routes) {
-      const name = asString(r.route_name);
-      if (!name) continue;
+  const name = asString(r.route_name);
+  if (!name) continue;
 
-      const key = normalize(name);
-      if (seen.has(key)) continue;
+  const routeDay = Number(r.route_day || 9);
 
-      seen.add(key);
-      items.push({ name });
-    }
+  // unikt på navn + dag
+  const key = `${normalize(name)}|${routeDay}`;
+  if (seen.has(key)) continue;
+
+  seen.add(key);
+  items.push({
+    name,
+    route_day: routeDay,
+  });
+}
 
     items.sort((a, b) => {
+  if ((a.route_day || 9) !== (b.route_day || 9)) {
+    return (a.route_day || 9) - (b.route_day || 9);
+  }
+
   const aName = a.name || "";
   const bName = b.name || "";
 
-  const aStartsWithLetter = /^[A-Za-zÆØÅæøå]/.test(aName);
-  const bStartsWithLetter = /^[A-Za-zÆØÅæøå]/.test(bName);
-
-  if (aStartsWithLetter && !bStartsWithLetter) return -1;
-  if (!aStartsWithLetter && bStartsWithLetter) return 1;
-
-  return aName.localeCompare(bName, "no", { numeric: true, sensitivity: "base" });
+  return aName.localeCompare(bName, "no", {
+    numeric: true,
+    sensitivity: "base",
+  });
 });
 
     await logEvent(user.user_id, "list_routes", "");
