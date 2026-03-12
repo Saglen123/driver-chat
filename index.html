@@ -370,25 +370,7 @@ function renderBackButton() {
       await checkSession();
     }
 
-    function goBack() {
-  if (!lastView) return;
-
-  if (lastView.type === "location") {
-    loadLocation(lastView.id, lastView.name);
-  }
-
-  if (lastView.type === "vehicle") {
-    loadVehicle(lastView.query);
-  }
-
-  if (lastView.type === "trailer") {
-    loadTrailer(lastView.query);
-  }
-
-  if (lastView.type === "route") {
-    loadRoute(lastView.name);
-  }
-}
+   
 
     function renderSuggestions(items) {
       suggestions = items;
@@ -463,13 +445,6 @@ function renderBackButton() {
       result.innerHTML = `
   <div class="card">
   ${renderBackButton()}
-
-    ${currentRouteName ? `
-      <div style="margin-bottom:12px;">
-        
-      </div>
-    ` : ""}
-
     <div class="sectionTitle">Sted </div>
     <div class="placeName">${loc.name}</div>
 
@@ -861,7 +836,6 @@ async function searchNow() {
       <div class="placeName">${res.route_name}</div>
 
       <div style="margin-bottom:12px;">
-        <button type="button" onclick="loadRoutesList()">← Tilbake til ruteliste </button>
       </div>
 
       ${
@@ -900,7 +874,12 @@ async function searchNow() {
 
     window.addEventListener("popstate", async (event) => {
   const state = event.state;
-  if (!state) return;
+
+  if (!state || state.type === "home") {
+    result.innerHTML = "";
+    statusEl.textContent = "Klar.";
+    return;
+  }
 
   if (state.type === "routesList") {
     await loadRoutesList(false);
@@ -927,6 +906,9 @@ async function searchNow() {
     return;
   }
 });
+
+setInitialState();
+checkSession();
   </script>
 </body>
 </html>
