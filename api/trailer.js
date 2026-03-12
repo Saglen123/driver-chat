@@ -20,92 +20,122 @@ module.exports = async function handler(req, res) {
   }
 
   const rawQuery = asString(req.query.regnr || req.query.q || "");
-const query = normalize(rawQuery);
+  const query = normalize(rawQuery);
 
-if (!query) {
-  return res.status(400).json({ ok: false, error: "Mangler søk" });
-}
+  if (!query) {
+    return res.status(400).json({ ok: false, error: "Mangler søk" });
+  }
 
-try {
-  const rows = await getSheetRows("trailers");
-  const trailers = rowsToObjects(rows);
+  try {
+    const rows = await getSheetRows("trailers");
+    const trailers = rowsToObjects(rows);
 
-  const reg = extractTrailerReg(rawQuery);
+    const reg = extractTrailerReg(rawQuery);
+    let matches = [];
 
-  let matches = [];
+    const genericTrailerWords = ["henger", "hengere", "tralle", "traller", "kjøl", "kjole", "skap", "gardin"];
 
-  // Hvis bruker skriver bare "henger", "tralle", osv. -> vis alle
-  const genericTrailerWords = ["henger", "hengere", "tralle", "kjøl", "skap", "gardin"];
-  if (genericTrailerWords.includes(query)) {
-    matches = trailers;
-  } else if (reg) {
-    matches = trailers.filter(t =>
-      asString(t.regnr).toUpperCase().replace(/\s/g, "") === reg
-    );
-  } else {
-    const tokens = query.split(/\s+/).filter(t => t.length >= 2);
+    // 1) Hvis bruker skriver generelt ord -> vis alle hengere
+    if (genericTrailerWords.includes(query)) {
+      matches = trailers;
+    }
+    // 2) Eksakt regnr
+    else if (reg) {
+      matches = trailers.filter(t =>
+        asString(t.regnr).toUpperCase().replace(/\s/g, "") === reg
+      );
+    }
+    // 3) Vanlig tekstsøk på navn/regnr/notater
+    else {
+      const tokens = query.split(/\s+/).filter(t => t.length >= 2);
 
-    matches = trailers.filter(t => {
-      const regnr = asString(t.regnr).toUpperCase().replace(/\s/g, "");
-      const trailerName = normalize(t.trailer_name);
-      const hay = `${regnr.toLowerCase()} ${trailerName}`.trim();
+      const scored = trailers.map(t => {
+        const regnr = asString(t.regnr).toUpperCase().replace(/\s/g, "");
+        const trailerName = normalize(t.trailer_name);
+        const notes = normalize(t.notes);
+        const hay = `${regnr.toLowerCase()} ${trailerName} ${notes}`.trim();
 
-      if (!hay) return false;
-      if (hay.includes(query)) return true;
+        let score = 0;
 
-      let score = 0;
-      for (const token of tokens) {
-        if (hay.includes(token)) score++;
-      }
-      return score > 0;
+        if (trailerName === query) score += 200;
+        if (regnr.toLowerCase() === query) score += 200;
+
+        if (trailerName.startsWith(query)) score += 80;
+        if (regnr.toLowerCase().startsWith(query)) score += 80;
+
+        if (hay.includes(query)) score += 40;
+
+        for (const token of tokens) {
+          if (hay.includes(token)) score += 10;
+        }
+
+        return { trailer: t, score };
+      });
+
+      matches = scored
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(x => x.trailer);
+    }
+
+    if (!matches.length) {
+      return res.status(404).json({ ok: false, error: "Fant ikke henger" });
+    }
+
+    // Rollefilter
+    matches = matches.filter(t => {
+      const required = t.required_role || t.access_role || t.acess_role || "users";
+      return canAccess(user.role, required);
     });
-  }
 
-  if (!matches.length) {
-    return res.status(404).json({ ok: false, error: "Fant ikke henger" });
-  }
+    if (!matches.length) {
+      return res.status(403).json({ ok: false, error: "Ingen tilgang" });
+    }
 
-  matches = matches.filter(t => {
-    const required = t.required_role || t.access_role || t.acess_role || "users";
-    return canAccess(user.role, required);
-  });
+    // Fjern duplikater på regnr
+    const seen = new Set();
+    matches = matches.filter(t => {
+      const key = asString(t.regnr).toUpperCase().replace(/\s/g, "");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-  if (!matches.length) {
-    return res.status(403).json({ ok: false, error: "Ingen tilgang" });
-  }
+    // Flere treff -> liste
+    if (matches.length > 1) {
+      const items = matches.slice(0, 50).map(t => ({
+        regnr: asString(t.regnr).toUpperCase(),
+        trailer_name: asString(t.trailer_name),
+        notes: asString(t.notes),
+      }));
 
-  if (matches.length > 1) {
-    const items = matches.slice(0, 50).map(t => ({
+      await logEvent(user.user_id, "search_trailer", rawQuery);
+
+      return res.status(200).json({
+        ok: true,
+        multiple: true,
+        items,
+      });
+    }
+
+    // Ett treff -> detaljvisning
+    const t = matches[0];
+
+    const payload = {
       regnr: asString(t.regnr).toUpperCase(),
       trailer_name: asString(t.trailer_name),
       notes: asString(t.notes),
-    }));
+      vognkort_url: asString(t.vognkort_url),
+    };
 
-    await logEvent(user.user_id, "search_trailer", rawQuery);
+    await logEvent(user.user_id, "get_trailer", payload.regnr);
 
     return res.status(200).json({
       ok: true,
-      multiple: true,
-      items,
+      multiple: false,
+      trailer: payload,
     });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: String(err) });
   }
-
-  const t = matches[0];
-
-  const payload = {
-    regnr: asString(t.regnr).toUpperCase(),
-    trailer_name: asString(t.trailer_name),
-    notes: asString(t.notes),
-    vognkort_url: asString(t.vognkort_url),
-  };
-
-  await logEvent(user.user_id, "get_trailer", payload.regnr);
-
-  return res.status(200).json({
-    ok: true,
-    multiple: false,
-    trailer: payload,
-  });
-} catch (err) {
-  return res.status(500).json({ ok: false, error: String(err) });
-}
+};
