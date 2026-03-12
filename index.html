@@ -220,9 +220,13 @@
       .title { font-size: 22px; }
       .loginGrid,
       .grid { grid-template-columns: 1fr; }
+      .routesGrid {grid-template-columns: 1fr !important;}
       .searchRow { grid-template-columns: 1fr 84px; }
       .placeName { font-size: 20px; }
     }
+
+    
+}
   </style>
 </head>
 <body>
@@ -768,10 +772,23 @@ async function searchNow() {
 
     checkSession();
 
+    function getRouteGroup(name) {
+  const n = String(name || "").trim().toLowerCase();
+
+  if (n.startsWith("1.") || n.startsWith("1 ") || n.includes("mandag")) return "Mandag";
+  if (n.startsWith("2.") || n.startsWith("2 ") || n.includes("tirsdag")) return "Tirsdag";
+  if (n.startsWith("3.") || n.startsWith("3 ") || n.includes("onsdag")) return "Onsdag";
+  if (n.startsWith("4.") || n.startsWith("4 ") || n.includes("torsdag")) return "Torsdag";
+  if (n.startsWith("5.") || n.startsWith("5 ") || n.includes("fredag")) return "Fredag";
+
+  return "Andre";
+}
+
     async function loadRoutesList(push = true) {
-      if (push) {
+  if (push) {
     pushViewState({ type: "routesList" });
-    }
+  }
+
   statusEl.textContent = "Laster ruter…";
   renderSuggestions([]);
 
@@ -791,19 +808,54 @@ async function searchNow() {
     return;
   }
 
+  const groups = {
+    Mandag: [],
+    Tirsdag: [],
+    Onsdag: [],
+    Torsdag: [],
+    Fredag: [],
+    Andre: []
+  };
+
+  for (const r of items) {
+    const group = getRouteGroup(r.name);
+    groups[group].push(r);
+  }
+
+  const blockOrder = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Andre"];
+
   result.innerHTML = `
     <div class="card">
-    ${renderBackButton()}
+      ${renderBackButton()}
       <div class="sectionTitle">Distribusjonsruter</div>
       <div class="placeName">Velg en rute</div>
 
-      <div class="routeList">
-        ${items.map(r => `
-          <div class="routeItem" style="cursor:pointer;" onclick="loadRoute('${String(r.name).replace(/'/g, "\\'")}')">
-            <div class="routeName">${r.name}</div>
-            <div class="routeMeta">Trykk for å vise hele ruten</div>
-          </div>
-        `).join("")}
+      <div style="
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap:14px;
+      " class="routesGrid">
+        ${blockOrder.map(groupName => {
+          const groupItems = groups[groupName];
+          if (!groupItems.length) return "";
+
+          return `
+            <div class="notes" style="margin-bottom:0;">
+              <div class="sectionTitle" style="font-size:15px; opacity:1; margin-bottom:12px;">
+                ${groupName}
+              </div>
+
+              <div class="routeList">
+                ${groupItems.map(r => `
+                  <div class="routeItem" style="cursor:pointer;" onclick="loadRoute('${String(r.name).replace(/'/g, "\\'")}')">
+                    <div class="routeName">${r.name}</div>
+                    <div class="routeMeta">Trykk for å vise hele ruten</div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }).join("")}
       </div>
     </div>
   `;
