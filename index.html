@@ -307,6 +307,18 @@
       return { status: res.status, ...json };
     }
 
+    function pushViewState(view) {
+  history.pushState(view, "", "");
+}
+
+function renderBackButton() {
+  return `
+    <div style="margin-bottom:12px;">
+      <button onclick="history.back()">← Tilbake</button>
+    </div>
+  `;
+}
+
     async function checkSession() {
       const res = await api("/api/me");
       if (res.ok) {
@@ -417,7 +429,10 @@
 
     
 
-    async function loadLocation(id, name = "") {
+    async function loadLocation(id, name = "", push = true) {
+      if (push) {
+      pushViewState({ type: "location", id, name });
+      }
       statusEl.textContent = "Laster sted…";
       renderSuggestions([]);
 
@@ -428,7 +443,7 @@
       const res = await api(url);
 
       if (!res.ok) {
-        result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke sted"}</div></div>`;
+        result.innerHTML = `<div class="card"> ${renderBackButton()}<div class="empty">${res.error || "Fant ikke sted"}</div></div>`;
         statusEl.textContent = "";
         return;
       }
@@ -438,12 +453,11 @@
 
       result.innerHTML = `
   <div class="card">
+  ${renderBackButton()}
 
     ${currentRouteName ? `
       <div style="margin-bottom:12px;">
-        <button onclick="loadRoute('${String(currentRouteName).replace(/'/g, "\\'")}')">
-          ← Tilbake til rute
-        </button>
+        
       </div>
     ` : ""}
 
@@ -505,14 +519,17 @@
       statusEl.textContent = "";
     }
 
-    async function loadVehicle(query) {
+    async function loadVehicle(query, push = true) {
+      if (push) {
+  pushViewState({ type: "vehicle", query });
+}
   statusEl.textContent = "🚛 Laster bil… ";
   renderSuggestions([]);
 
   const res = await api(`/api/vehicle?q=${encodeURIComponent(query)}`);
 
   if (!res.ok) {
-    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke bil"}</div></div>`;
+    result.innerHTML = `<div class="card"> ${renderBackButton()}<div class="empty">${res.error || "Fant ikke bil"}</div></div>`;
     statusEl.textContent = "";
     return;
   }
@@ -520,9 +537,8 @@
   if (res.multiple && res.items?.length) {
     result.innerHTML = `
       <div class="card">
-        <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
-        ← Tilbake
-        </button>
+      ${renderBackButton()}
+        
         <div class="sectionTitle">Biler 🚛</div>
         <div class="placeName">Flere treff</div>
 
@@ -547,9 +563,8 @@
 
   result.innerHTML = `
     <div class="card">
-    <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
-      ← Tilbake
-    </button>
+    ${renderBackButton()}
+    
       <div class="sectionTitle">Bil 🚛</div>
       <div class="placeName">${v.regnr}${v.vehicle_name ? ` – ${v.vehicle_name}` : ""}</div>
 
@@ -578,7 +593,10 @@
   statusEl.textContent = "";
 }
 
-async function loadTrailer(query) {
+async function loadTrailer(query, push = true) {
+  if (push) {
+  pushViewState({ type: "trailer", query });
+}
   statusEl.textContent = "🛻 Laster henger…";
   renderSuggestions([]);
 
@@ -587,9 +605,8 @@ async function loadTrailer(query) {
   if (!res.ok) {
     result.innerHTML = `
     <div class="card">
-      <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
-      ← Tilbake
-      </button>
+    ${renderBackButton()}
+      
       <div class="empty">${res.error || "Fant ikke henger"}
       </div>
     </div>`;
@@ -600,9 +617,8 @@ async function loadTrailer(query) {
   if (res.multiple && res.items?.length) {
     result.innerHTML = `
       <div class="card">
-        <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
-          ← Tilbake
-        </button>
+      ${renderBackButton()}
+        
         <div class="sectionTitle">Hengere 🛻</div>
         <div class="placeName">Flere treff</div>
 
@@ -627,9 +643,7 @@ async function loadTrailer(query) {
 
   result.innerHTML = `
     <div class="card">
-      <button onclick="goBack()" class="copyBtn" style="margin-bottom:10px;">
-        ← Tilbake
-      </button>
+    ${renderBackButton()}
       <div class="sectionTitle">Henger 🛻</div>
       <div class="placeName">${t.regnr}${t.trailer_name ? ` – ${t.trailer_name}` : ""}</div>
 
@@ -770,7 +784,10 @@ async function searchNow() {
 
     checkSession();
 
-    async function loadRoutesList() {
+    async function loadRoutesList(push = true) {
+      if (push) {
+    pushViewState({ type: "routesList" });
+    }
   statusEl.textContent = "Laster ruter…";
   renderSuggestions([]);
 
@@ -785,13 +802,14 @@ async function searchNow() {
   const items = res.items || [];
 
   if (!items.length) {
-    result.innerHTML = `<div class="card"><div class="empty">Fant ingen ruter.</div></div>`;
+    result.innerHTML = `<div class="card"> ${renderBackButton()}<div class="empty">Fant ingen ruter.</div></div>`;
     statusEl.textContent = "";
     return;
   }
 
   result.innerHTML = `
     <div class="card">
+    ${renderBackButton()}
       <div class="sectionTitle">Distribusjonsruter</div>
       <div class="placeName">Velg en rute</div>
 
@@ -809,7 +827,10 @@ async function searchNow() {
   statusEl.textContent = "";
 }
 
-    async function loadRoute(routeName) {
+    async function loadRoute(routeName, push = true) {
+      if (push) {
+  pushViewState({ type: "route", name: routeName });
+}
       currentRouteName = routeName;
   statusEl.textContent = "Laster rute…";
   renderSuggestions([]);
@@ -817,7 +838,7 @@ async function searchNow() {
   const res = await api(`/api/route?name=${encodeURIComponent(routeName)}`);
 
   if (!res.ok) {
-    result.innerHTML = `<div class="card"><div class="empty">${res.error || "Fant ikke rute"}</div></div>`;
+    result.innerHTML = `<div class="card">${renderBackButton()}<div class="empty">${res.error || "Fant ikke rute"}</div></div>`;
     statusEl.textContent = "";
     return;
   }
@@ -826,6 +847,7 @@ async function searchNow() {
 
   result.innerHTML = `
     <div class="card">
+    ${renderBackButton()}
       <div class="sectionTitle">Distribusjonsrute</div>
       <div class="placeName">${res.route_name}</div>
 
@@ -866,6 +888,36 @@ async function searchNow() {
 
   statusEl.textContent = "";
 }
+
+    window.addEventListener("popstate", async (event) => {
+  const state = event.state;
+  if (!state) return;
+
+  if (state.type === "routesList") {
+    await loadRoutesList(false);
+    return;
+  }
+
+  if (state.type === "route") {
+    await loadRoute(state.name, false);
+    return;
+  }
+
+  if (state.type === "location") {
+    await loadLocation(state.id || "", state.name || "", false);
+    return;
+  }
+
+  if (state.type === "vehicle") {
+    await loadVehicle(state.query, false);
+    return;
+  }
+
+  if (state.type === "trailer") {
+    await loadTrailer(state.query, false);
+    return;
+  }
+});
   </script>
 </body>
 </html>
