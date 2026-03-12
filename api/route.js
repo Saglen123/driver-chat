@@ -32,6 +32,7 @@ module.exports = async function handler(req, res) {
     location_id: asNumberKey(r.location_id),
     location_name: asString(r.location_name),
     route_name: asString(r.route_name),
+    route_day: Number(r.route_day || 9),
     delivery_day_num: Number(r.delivery_day || 0),
     delivery_day: dayCodeToName(r.delivery_day),
     delivery_time: timeToHHMM(r.delivery_time),
