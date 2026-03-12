@@ -772,14 +772,14 @@ async function searchNow() {
 
     checkSession();
 
-    function getRouteGroup(name) {
-  const n = String(name || "").trim().toLowerCase();
+    function getRouteGroup(route) {
+  const day = Number(route.route_day || 9);
 
-  if (n.startsWith("1.") || n.startsWith("1 ") || n.includes("mandag")) return "Mandag";
-  if (n.startsWith("2.") || n.startsWith("2 ") || n.includes("tirsdag")) return "Tirsdag";
-  if (n.startsWith("3.") || n.startsWith("3 ") || n.includes("onsdag")) return "Onsdag";
-  if (n.startsWith("4.") || n.startsWith("4 ") || n.includes("torsdag")) return "Torsdag";
-  if (n.startsWith("5.") || n.startsWith("5 ") || n.includes("fredag")) return "Fredag";
+  if (day === 1) return "Mandag";
+  if (day === 2) return "Tirsdag";
+  if (day === 3) return "Onsdag";
+  if (day === 4) return "Torsdag";
+  if (day === 5) return "Fredag";
 
   return "Andre";
 }
@@ -818,7 +818,7 @@ async function searchNow() {
   };
 
   for (const r of items) {
-    const group = getRouteGroup(r.name);
+    const group = getRouteGroup(r);
     groups[group].push(r);
   }
 
