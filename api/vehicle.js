@@ -85,7 +85,7 @@ try {
 
     // hvis flere treff: returner liste
     if (matches.length > 1) {
-      const items = matches.slice(0, 10).map(v => ({
+      const items = matches.slice(0, 100).map(v => ({
         regnr: asString(v.regnr).toUpperCase(),
         vehicle_name: asString(v.vehicle_name),
         notes: asString(v.notes),
