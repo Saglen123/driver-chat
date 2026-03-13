@@ -263,8 +263,10 @@
       </div>
 
       <div class="status" id="status"></div>
-      <div style="margin-top:10px;">
-      <button id="routesBtn" type="button">Ruter</button>
+      <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="routesBtn" type="button">Ruter</button>
+          <button id="vehiclesBtn" type="button">Biler</button>
+          <button id="trailersBtn" type="button">Hengere</button>
       </div>
     </div>
 
@@ -284,6 +286,8 @@
     const suggestBox = document.getElementById("suggestBox");
     const result = document.getElementById("result");
     const routesBtn = document.getElementById("routesBtn");
+    const vehiclesBtn = document.getElementById("vehiclesBtn");
+    const trailersBtn = document.getElementById("trailersBtn");
     let currentRouteName = null;
     let lastView = null;
 
@@ -765,6 +769,8 @@ async function searchNow() {
     logoutBtn.addEventListener("click", logout);
     searchBtn.addEventListener("click", searchNow);
     routesBtn.addEventListener("click", loadRoutesList);
+    vehiclesBtn.addEventListener("click", () => loadVehicle("bil"));
+    trailersBtn.addEventListener("click", () => loadTrailer("henger"));
 
     window.copyText = copyText;
     window.loadRoute = loadRoute;
