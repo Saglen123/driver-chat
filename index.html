@@ -836,26 +836,43 @@ async function searchNow() {
         gap:14px;
       " class="routesGrid">
         ${blockOrder.map(groupName => {
-          const groupItems = groups[groupName];
-          if (!groupItems.length) return "";
+  const groupItems = groups[groupName];
+  if (!groupItems.length) return "";
 
-          return `
-            <div class="notes" style="margin-bottom:0;">
-              <div class="sectionTitle" style="font-size:15px; opacity:1; margin-bottom:12px;">
-                ${groupName}
-              </div>
+  if (groupName === "Andre") {
+    return `
+      <div class="notes" style="margin-bottom:0;">
+        <div class="sectionTitle" style="font-size:15px; opacity:1; margin-bottom:12px;">
+          Coop
+        </div>
 
-              <div class="routeList">
-                ${groupItems.map(r => `
-                  <div class="routeItem" style="cursor:pointer;" onclick="loadRoute('${String(r.name).replace(/'/g, "\\'")}')">
-                    <div class="routeName">${r.name}</div>
-                    <div class="routeMeta">Trykk for å vise hele ruten</div>
-                  </div>
-                `).join("")}
-              </div>
-            </div>
-          `;
-        }).join("")}
+        <div class="routeList">
+          <div class="routeItem" style="cursor:pointer;" onclick="loadCoopRoutes()">
+            <div class="routeName">Åpne Coop-ruter</div>
+            <div class="routeMeta">Vis alle Coop distribusjonsruter</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="notes" style="margin-bottom:0;">
+      <div class="sectionTitle" style="font-size:15px; opacity:1; margin-bottom:12px;">
+        ${groupName}
+      </div>
+
+      <div class="routeList">
+        ${groupItems.map(r => `
+          <div class="routeItem" style="cursor:pointer;" onclick="loadRoute('${String(r.name).replace(/'/g, "\\'")}')">
+            <div class="routeName">${r.name}</div>
+            <div class="routeMeta">Trykk for å vise hele ruten</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}).join("")}
       </div>
     </div>
   `;
@@ -863,6 +880,48 @@ async function searchNow() {
   statusEl.textContent = "";
 }
 
+    
+    
+    async function loadCoopRoutes(push = true) {
+  if (push) {
+    pushViewState({ type: "coopRoutes" });
+  }
+
+  statusEl.textContent = "Laster Coop-ruter…";
+  renderSuggestions([]);
+
+  const res = await api("/api/routes");
+
+  if (!res.ok) {
+    result.innerHTML = `<div class="card"><div class="empty">Kunne ikke laste ruter</div></div>`;
+    statusEl.textContent = "";
+    return;
+  }
+
+  const coopRoutes = (res.items || []).filter(r => (r.route_day || 9) === 9);
+
+  result.innerHTML = `
+    <div class="card">
+      ${renderBackButton()}
+      <div class="sectionTitle">Coop-ruter</div>
+      <div class="placeName">Velg rute</div>
+
+      <div class="routeList">
+        ${coopRoutes.map(r => `
+          <div class="routeItem" style="cursor:pointer;" onclick="loadRoute('${String(r.name).replace(/'/g, "\\'")}')">
+            <div class="routeName">${r.name}</div>
+            <div class="routeMeta">Trykk for å vise ruten</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+
+  statusEl.textContent = "";
+}
+    
+    
+    
     async function loadRoute(routeName, push = true) {
       if (push) {
   pushViewState({ type: "route", name: routeName });
@@ -938,6 +997,11 @@ async function searchNow() {
     return;
   }
 
+  if (state.type === "coopRoutes") {
+    await loadCoopRoutes(false);
+    return;
+  }
+      
   if (state.type === "route") {
     await loadRoute(state.name, false);
     return;
